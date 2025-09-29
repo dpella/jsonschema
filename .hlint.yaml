@@ -1,0 +1,234 @@
+# HLint configuration file
+# https://github.com/ndmitchell/hlint
+##########################
+
+# This file contains a template configuration file, which is typically
+# placed as .hlint.yaml in the root of your project
+
+
+# Specify additional command line arguments
+#
+- arguments:
+  - "-XAllowAmbiguousTypes"
+  - "-XBangPatterns"
+  - "-XConstraintKinds"
+  - "-XDataKinds"
+  - "-XDeriveGeneric"
+  - "-XDerivingStrategies"
+  - "-XDerivingVia"
+  - "-XEmptyCase"
+  - "-XExplicitNamespaces"
+  - "-XFlexibleContexts"
+  - "-XFlexibleInstances"
+  - "-XFunctionalDependencies"
+  - "-XGADTs"
+  - "-XGeneralizedNewtypeDeriving"
+  - "-XImportQualifiedPost"
+  - "-XInstanceSigs"
+  - "-XKindSignatures"
+  - "-XLambdaCase"
+  - "-XMultiParamTypeClasses"
+  - "-XNoStarIsType"
+  - "-XPatternSynonyms"
+  - "-XOverloadedStrings"
+  - "-XPolyKinds"
+  - "-XQuasiQuotes"
+  - "-XRankNTypes"
+  - "-XRoleAnnotations"
+  - "-XScopedTypeVariables"
+  - "-XStandaloneDeriving"
+  - "-XTypeApplications"
+  - "-XTypeFamilies"
+  - "-XTypeOperators"
+  - "-XTypeSynonymInstances"
+  - "-XUndecidableInstances"
+  - "-XViewPatterns"
+
+
+# Control which extensions/flags/modules/functions can be used
+#
+- extensions:
+#   - default: false # all extension are banned by default
+  - name:
+    - AllowAmbiguousTypes
+    - BangPatterns
+    - ConstraintKinds
+    - DataKinds
+    - DeriveGeneric
+    - DerivingStrategies
+    - DerivingVia
+    - EmptyCase
+    - ExplicitNamespaces
+    - FlexibleContexts
+    - FlexibleInstances
+    - FunctionalDependencies
+    - GADTs
+    - GeneralizedNewtypeDeriving
+    - ImportQualifiedPost
+    - InstanceSigs
+    - KindSignatures
+    - LambdaCase
+    - MultiParamTypeClasses
+    - NoStarIsType
+    - OverloadedStrings
+    - PolyKinds
+    - QuasiQuotes
+    - RankNTypes
+    - RoleAnnotations
+    - ScopedTypeVariables
+    - StandaloneDeriving
+    - TypeApplications
+    - TypeFamilies
+    - TypeOperators
+    - TypeSynonymInstances
+    - UndecidableInstances
+    - ViewPatterns
+  - {name: NoPatternSynonyms, within: DPella.Lang.Utils}
+  - name: CPP
+    within:
+      - DPella.Idx.Unsafe
+      - DPella.NP.Unsafe
+      - DPella.TypeLits.Int
+      - DPella.TypeLits.Symbol
+  - name: DeriveDataTypeable
+    within:
+      - DPella.Data.Time
+      - DPella.SQL.AST
+  - name: ForeignFunctionInterface
+    within:
+      - DPella_FFI
+  - name: NumericUnderscores
+    within:
+      - DPella.REPL.Cmd.Parser
+      - Tests.Golden
+      - Tests.PBT
+  - name: PatternSynonyms
+    within:
+      - DPella.Data.Column
+      - DPella.Idx.Unsafe
+      - DPella.NP.Unsafe
+  - name: QuantifiedConstraints
+    within:
+      - DPella.Core.Value.Semantics
+  - name: RecordWildCards
+    within:
+      - DPella.Core.Data.SQL
+      - DPella.Core.Dataset
+      - DPella.Lang.Backend.SQL.Compiler
+      - DPella.REPL.Cmd.Autocomplete
+      - DPella.REPL.Cmd.Parser
+      - DPella.RTS.DB.Budget
+      - DPella.RTS.DB.Dataset
+      - DPella.RTS.DB.Marshall
+      - DPella.RTS.DB.Query
+      - DPella.RTS.DB.Role
+      - DPella.RTS.DB.User
+      - DPella.RTS.Handlers.Budget
+      - DPella.RTS.Handlers.Dataset
+      - DPella.RTS.Handlers.Query
+      - DPella.SQL.Pretty
+      - Main
+  - name: TemplateHaskell
+    within:
+      - DPella.REPL.Version
+      - DPella.RTS.DB.Init
+  - name: TemplateHaskellQuotes
+    within:
+      - DPella.Core.Dataset
+      - DPella.Core.Interpreter.Accuracy
+      - DPella.Core.Interpreter.Budget
+      - DPella.Core.Interpreter.Empiric
+      - DPella.Core.Interpreter.Eval
+      - DPella.Core.Interpreter.IFC
+      - DPella.Core.Interpreter.SQL
+      - DPella.Core.Value
+      - DPella.Data.Encoding.CSV
+      - DPella.Data.Schema
+      - DPella.Lang.Backend.SQL.Compiler
+      - DPella.Lang.Backend.SQL.PostProcessing
+      - DPella.RTS.DB.Budget
+      - DPella.RTS.DB.Dataset
+      - DPella.RTS.DB.Role
+      - DPella.RTS.DB.User
+      - DPella.RTS.DB.Utils
+      - DPella.RTS.Handlers.Auth
+      - DPella.RTS.Handlers.Budget
+      - DPella.RTS.Handlers.Dataset
+      - DPella.RTS.Handlers.Query
+      - DPella.RTS.Handlers.Role
+      - DPella.RTS.Handlers.User
+      - DPella.RTS.JWT
+      - DPella.RTS.RBAC.Rules
+      - Tests.Unit.DB.Query
+  - name: Trustworthy
+    within:
+      - DPella.API.Analyst
+  - name: TupleSections
+    within:
+      - DPella.Core.Data.SQL
+      - DPella.Lang.Backend.SQL.Compiler
+  - name: UndecidableSuperClasses
+    within:
+      - DPella.Data.Database
+  - name: Unsafe
+    within:
+      - DPella.API.Curator
+      - DPella.API.Unsafe
+      - DPella.Core
+#   - {name: CPP, within: CrossPlatform} # CPP can only be used in a given module
+#
+# - flags:
+#   - {name: -w, within: []} # -w is allowed nowhere
+#
+# - modules:
+#   - {name: [Data.Set, Data.HashSet], as: Set} # if you import Data.Set qualified, it must be as 'Set'
+#   - {name: Control.Arrow, within: []} # Certain modules are banned entirely
+#
+# - functions:
+#   - {name: unsafePerformIO, within: []} # unsafePerformIO can only appear in no modules
+
+
+# Add custom hints for this project
+#
+# Will suggest replacing "wibbleMany [myvar]" with "wibbleOne myvar"
+# - error: {lhs: "wibbleMany [x]", rhs: wibbleOne x}
+
+# The hints are named by the string they display in warning messages.
+# For example, if you see a warning starting like
+#
+# Main.hs:116:51: Warning: Redundant ==
+#
+# You can refer to that hint with `{name: Redundant ==}` (see below).
+
+# Turn on hints that are off by default
+#
+# Ban "module X(module X) where", to require a real export list
+# - warn: {name: Use explicit module export list}
+#
+# Replace a $ b $ c with a . b $ c
+# - group: {name: dollar, enabled: true}
+#
+# - group: {name: generalise, enabled: true}
+#
+# Warn on use of partial functions
+# - group: {name: partial, enabled: true}
+
+
+# Ignore some builtin hints
+- ignore: {name: Use list comprehension}
+- ignore: {name: Avoid lambda using `infix`}
+- ignore: {name: Use map with tuple-section}
+- ignore: {name: Use tuple-section}
+- ignore: {name: Use first}
+- ignore : {name: Use camelCase}
+- ignore: {name: Avoid restricted extensions, within: Main}
+# - ignore: {name: Use let}
+# - ignore: {name: Use const, within: SpecialModule} # Only within certain modules
+
+
+# Define some custom infix operators
+# - fixity: infixr 3 ~^#^~
+
+
+# To generate a suitable file for HLint do:
+# $ hlint --default > .hlint.yaml

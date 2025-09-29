@@ -1,0 +1,166 @@
+# jsonschema
+
+Haskell library for deriving and validating JSON Schema (2020-12).
+
+This library provides:
+
+- Automatic JSON Schema derivation from Haskell types via `GHC.Generics`.
+- Sensible encodings for records, products, and sum types (with tags).
+- `$defs`/`$ref` support for recursive types.
+- A validator that implements the core 2020-12 validation + applicator vocabularies.
+- Helpful error reporting with instance paths when you want detailed feedback.
+
+
+## Features
+
+- Derive schemas with the `ToJSONSchema` type class; generic default handles most ADTs.
+- Records become JSON objects with named properties; non-record products become arrays with `prefixItems` and `items: false`.
+- Sum types are modeled with discriminator tags:
+  - Record constructors: object with a required `tag` (constructor name) and the record fields.
+  - Non-record constructors: object `{ tag, contents }`, where `contents` is the constructor’s payload (array/object).
+- Recursive types are emitted under `"$defs"` and referenced with `"$ref"`.
+- Validation covers: `type`, `const`, `enum`, numeric and string constraints, arrays (`prefixItems`, `items`, `contains`, `minContains`, `maxContains`), objects (`properties`, `patternProperties`, `additionalProperties`, `propertyNames`, `required`, `dependentSchemas`, `dependentRequired`), combinators (`anyOf`, `oneOf`, `allOf`, `not`), conditionals (`if`/`then`/`else`), and pragmatic `unevaluated*`.
+- Local `$ref` resolution using JSON Pointers within the same document.
+
+Notes and limits:
+
+- JSON Schema version: 2020-12. `format` and `content*` are treated as annotations (not asserted).
+- `$ref` resolution is local (`#...`) only; external URIs/anchors are not resolved.
+- `unevaluatedProperties`/`unevaluatedItems` are implemented with a practical, local approximation.
+
+
+## Quick Start
+
+Add the library to your build, then import the high-level module:
+
+```haskell
+import GHC.Generics (Generic)
+import Data.Aeson (ToJSON, Value, object, (.=))
+import Data.Proxy (Proxy(..))
+import Data.Text (Text)
+import JSONSchema                -- ToJSONSchema(..), Proxy(..), validateJSONSchema
+import JSONSchema.Validation     -- validate / validateWithErrors (optional)
+```
+
+### 1) Derive a schema for your type
+
+```haskell
+data Person = Person
+  { name :: Text
+  , age  :: Int
+  } deriving (Show, Eq, Generic)
+
+instance ToJSON Person
+instance ToJSONSchema Person
+
+-- Produce the JSON Schema (as an Aeson Value)
+personSchema :: Value
+personSchema = toJSONSchema (Proxy :: Proxy Person)
+```
+
+What you get (shape, simplified):
+
+```jsonc
+{
+  "$defs": {
+    "Person": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "age":  {"type": "integer"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "$ref": "#/$defs/Person"
+}
+```
+
+Sum types are tagged. For example:
+
+```haskell
+data Shape
+  = Circle Double
+  | Rectangle Double Double
+  deriving (Show, Eq, Generic)
+
+instance ToJSON Shape
+instance ToJSONSchema Shape
+
+shapeSchema :: Value
+shapeSchema = toJSONSchema (Proxy :: Proxy Shape)
+```
+
+Non-record constructors encode as objects like `{ tag: { const: "Circle" }, contents: <payload> }`.
+Record constructors encode as objects with a `tag` plus their named fields.
+
+
+### 2) Validate data against a schema
+
+Use the simple boolean check:
+
+```haskell
+import Data.Aeson (toJSON)
+
+valid :: Bool
+valid = validateJSONSchema personSchema (toJSON (Person "Alice" 30))
+```
+
+Or collect all validation errors:
+
+```haskell
+import JSONSchema.Validation (validate, validateWithErrors, ValidationError(..))
+
+case validate personSchema (toJSON (Person "Alice" 30)) of
+  Right ()   -> putStrLn "OK"
+  Left errs  -> mapM_ print errs  -- includes JSON Pointer-like paths
+```
+
+You can validate any `Value` against any schema, including hand-written schemas:
+
+```haskell
+let schema = object
+      [ "type" .= ("object" :: Text)
+      , "properties" .= object ["name" .= object ["type" .= ("string" :: Text)]]
+      , "required" .= (["name"] :: [Text])
+      ]
+in validateJSONSchema schema (object ["name" .= ("Bob" :: Text)])
+```
+
+
+### 3) Custom schemas for special types
+
+Provide an explicit instance when you need a specific schema shape:
+
+```haskell
+newtype UUID = UUID Text
+
+instance ToJSONSchema UUID where
+  toJSONSchema _ = object
+    [ "type"      .= ("string" :: Text)
+    , "minLength" .= (36 :: Int)
+    , "maxLength" .= (36 :: Int)
+    ]
+```
+
+
+## Tips
+
+- Pretty-print schemas with `aeson-pretty` if you want human-friendly output.
+- For `Maybe a`, the schema is `anyOf [schema(a), {"type":"null"}]`.
+- For `[a]`, the schema is `{ "type": "array", "items": schema(a) }`.
+- For `Either a b`, the schema is `anyOf` with `{ "Left": a }` and `{ "Right": b }` object encodings.
+
+
+## Development
+
+- Build and test with Cabal:
+  - `cabal build`
+  - `cabal test`
+
+
+## License
+
+Copyright (c) DPella AB. All rights reserved.
+See `LICENSE` for details.
+
