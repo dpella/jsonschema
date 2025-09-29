@@ -83,7 +83,7 @@ WORKDIR /app
 RUN --mount=type=cache,id=build-cache,uid=${UID},gid=${GID},target=/app/dist-newstyle \
     cabal update --index-state='2025-09-01T00:00:00Z' && \
     sed -i 's/-bundled-c-zlib/+bundled-c-zlib/' cabal.project.freeze &&\
-    cabal build all --only-dependencies --enable-coverage --haddock-all --project-file=cabal.project --project-dir=/app
+    cabal build all --only-dependencies --haddock-all --project-file=cabal.project --project-dir=/app
 
 COPY --link --chown=${UID}:${GID} src /app/src
 COPY --link --chown=${UID}:${GID} test /app/test
@@ -91,21 +91,19 @@ COPY --link --chown=${UID}:${GID} test /app/test
 # Build all the packages
 RUN --mount=type=cache,id=build-cache,uid=${UID},gid=${GID},target=/app/dist-newstyle \
      sed -i 's/-bundled-c-zlib/+bundled-c-zlib/' cabal.project.freeze &&\
-     cabal build all --enable-coverage --haddock-all --project-file=cabal.project --project-dir=/app
+     cabal build all --haddock-all --project-file=cabal.project --project-dir=/app
 
 
 RUN --mount=type=cache,id=build-cache,uid=${UID},gid=${GID},target=/app/dist-newstyle \
      cabal haddock --haddock-for-hackage --project-file=cabal.project --project-dir=/app  && \
-     cabal test all --enable-tests --enable-coverage --project-file=cabal.project --project-dir=/app
+     cabal test all --enable-tests --project-file=cabal.project --project-dir=/app
 
 USER root
 
 RUN --mount=type=cache,id=build-cache,uid=${UID},gid=${GID},target=/app/dist-newstyle \
     set -euo pipefail; \
     mkdir -p /artifacts/docs; \
-    mkdir -p /artifacts/hpc; \
-    cp -r $(find /app/dist-newstyle/build -type d -path '*/doc/html') /artifacts/docs; \
-    cp -r $(find /app/dist-newstyle/build -type d -path '*/hpc/vanilla/html') /artifacts/hpc;
+    find /app/dist-newstyle/build -type d -path '*/doc/html' -exec cp -r {} /artifacts/docs \;
 
 USER ${UID}:${GID}
 # Default command
