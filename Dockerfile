@@ -98,6 +98,8 @@ RUN --mount=type=cache,id=build-cache,uid=${UID},gid=${GID},target=/app/dist-new
      cabal haddock --haddock-for-hackage --project-file=cabal.project --project-dir=/app  && \
      cabal test all --enable-tests --project-file=cabal.project --project-dir=/app
 
+COPY --link --chown=${UID}:${GID} scripts /app/scripts
+
 USER root
 
 RUN --mount=type=cache,id=build-cache,uid=${UID},gid=${GID},target=/app/dist-newstyle \

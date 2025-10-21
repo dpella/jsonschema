@@ -78,4 +78,5 @@ jobs:
       if: github.event.pull_request.draft == false
       run: |
        docker run --rm -t \
-         ${{ steps.meta.outputs.tags }}
+         $(echo "${{ steps.meta.outputs.tags }}" | tail -n1) \
+         scripts/test-in-docker.sh
