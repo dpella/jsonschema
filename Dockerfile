@@ -93,12 +93,14 @@ RUN --mount=type=cache,id=build-cache,uid=${UID},gid=${GID},target=/app/dist-new
      sed -i 's/-bundled-c-zlib/+bundled-c-zlib/' cabal.project.freeze &&\
      cabal build all --haddock-all --project-file=cabal.project --project-dir=/app
 
+COPY --link --chown=${UID}:${GID} *.md /app/
 
 RUN --mount=type=cache,id=build-cache,uid=${UID},gid=${GID},target=/app/dist-newstyle \
      cabal haddock --haddock-for-hackage --project-file=cabal.project --project-dir=/app  && \
      cabal test all --enable-tests --project-file=cabal.project --project-dir=/app
 
 COPY --link --chown=${UID}:${GID} scripts /app/scripts
+
 
 USER root
 
