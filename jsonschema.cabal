@@ -1,7 +1,8 @@
 cabal-version:      2.2
 name:               jsonschema
 version:            0.2.0.0
-license:            LicenseRef-AllRightsReserved
+license:            MPL-2.0
+license-file:       LICENSE
 author:             DPella AB
 maintainer:         matti@dpella.io,
                     lobo@dpella.io
@@ -13,8 +14,7 @@ description:
   sum-tag encoding, and refined handling of arrays and enumerations. Validation implements
   the core and applicator vocabularies, including `$defs` and local `$ref` resolution,
   pragmatic support for `unevaluated*` keywords, and detailed error traces.
-extra-doc-files:
-  CHANGELOG.md
+extra-doc-files:    CHANGELOG.md, README.md
 homepage:          https://github.com/DPella/jsonschema
 bug-reports:       https://github.com/DPella/jsonschema/issues
 category:          Data, JSON
