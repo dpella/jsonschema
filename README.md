@@ -163,5 +163,4 @@ instance ToJSONSchema UUID where
 
 ## License
 
-Copyright (c) DPella AB. All rights reserved.
-See `LICENSE` for details.
+Released under the Mozilla Public License 2.0 by DPella AB. See `LICENSE` for details.
