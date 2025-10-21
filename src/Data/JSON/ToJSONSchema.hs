@@ -5,16 +5,16 @@
 {-# LANGUAGE TypeOperators #-}
 
 -- |
--- Module:      JSONSchema
+-- Module:      Data.JSON.ToJSONSchema
 -- Copyright:   (c) DPella AB 2025
 -- License:     LicenseRef-AllRightsReserved
 -- Maintainer:  <matti@dpella.io>, <lobo@dpella.io>
 --
--- JSON Schema generation for Haskell types.
+-- Core machinery for deriving JSON Schema definitions from Haskell types.
 --
 -- This module provides a type class and generic implementation for
 -- automatically deriving JSON Schema descriptions from Haskell data types.
--- The generated schemas follow the JSON Schema Draft 7 specification.
+-- The generated schemas follow the JSON Schema 2020-12 specification.
 --
 -- = Usage
 --
@@ -39,12 +39,13 @@
 --     , "maxLength" .= 36
 --     ]
 -- @
-module JSONSchema.ToJSONSchema (
+module Data.JSON.ToJSONSchema (
   ToJSONSchema (..),
   Proxy (..),
 ) where
 
 import Data.Aeson
+import Data.Aeson.Key qualified as K
 import Data.Aeson.KeyMap qualified as KM
 import Data.Maybe (isJust)
 import Data.Proxy
@@ -134,6 +135,8 @@ instance (ToJSONSchema a, ToJSONSchema b) => ToJSONSchema (Either a b) where
                     .= object
                       [ "Left" .= toJSONSchema (Proxy :: Proxy a)
                       ]
+                , "required" .= ([ "Left" ] :: [Text])
+                , "additionalProperties" .= False
                 ]
              , object
                 [ "type" .= ("object" :: Text)
@@ -141,6 +144,8 @@ instance (ToJSONSchema a, ToJSONSchema b) => ToJSONSchema (Either a b) where
                     .= object
                       [ "Right" .= toJSONSchema (Proxy :: Proxy b)
                       ]
+                , "required" .= ([ "Right" ] :: [Text])
+                , "additionalProperties" .= False
                 ]
              ]
       ]
@@ -326,11 +331,23 @@ instance (KnownSymbol name, GToJSONSchema f) => GToJSONSchema (C1 (MetaCons name
     :: forall a. (ToJSONSchema a, Typeable a) => Bool -> Maybe Text -> Proxy (C1 (MetaCons name fixity True) f a) -> Value
   gToJSONSchema tagged root_name _ =
     let props_val = extractProperties $ gToJSONSchema tagged root_name (Proxy :: Proxy (f a))
+        props_keys =
+          case props_val of
+            Object km -> fmap K.toText (KM.keys km)
+            _ -> []
+        requiredFields =
+          (if tagged then ("tag" :) else id) props_keys
+        requiredPairs =
+          if null requiredFields
+            then []
+            else ["required" .= requiredFields]
     in  object
-          [ "type" .= ("object" :: Text)
-          , "properties" .= if tagged then addTag props_val else props_val
-          , "additionalProperties" .= False
-          ]
+          ( [ "type" .= ("object" :: Text)
+            , "properties" .= if tagged then addTag props_val else props_val
+            , "additionalProperties" .= False
+            ]
+              ++ requiredPairs
+          )
     where
       tag = object ["const" .= cn]
       addTag (Object km) = Object $ KM.singleton (fromString "tag") tag `KM.union` km
@@ -378,19 +395,23 @@ instance (KnownSymbol name, GToJSONSchema f) => GToJSONSchema (C1 (MetaCons name
             let obj = case km KM.!? "prefixItems" of
                   Just pfi@(Array _) -> object ["type" .= ("array" :: Text), "prefixItems" .= pfi, "items" .= False]
                   _ -> o
+                basePairs =
+                  [ "type" .= ("object" :: Text)
+                  , "properties" .= object ["tag" .= tag, "contents" .= obj]
+                  , "additionalProperties" .= False
+                  ]
+                requiredPairs =
+                  ["required" .= (["tag", "contents"] :: [Text])]
             in  if tagged
                   then
-                    object
-                      [ "type" .= ("object" :: Text)
-                      , "properties" .= object ["tag" .= tag, "contents" .= obj]
-                      , "additionalProperties" .= False
-                      ]
+                    object (basePairs ++ requiredPairs)
                   else obj
           Null ->
             object
               [ "type" .= ("object" :: Text)
               , "properties" .= object ["tag" .= tag]
               , "additionalProperties" .= False
+              , "required" .= ([ "tag" ] :: [Text])
               ]
           x -> x
 

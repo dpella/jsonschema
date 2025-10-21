@@ -1,6 +1,6 @@
 cabal-version:      2.2
 name:               jsonschema
-version:            0.1.0.0
+version:            0.2.0.0
 license:            LicenseRef-AllRightsReserved
 author:             DPella AB
 maintainer:         matti@dpella.io,
@@ -13,6 +13,8 @@ description:
   sum-tag encoding, and refined handling of arrays and enumerations. Validation implements
   the core and applicator vocabularies, including `$defs` and local `$ref` resolution,
   pragmatic support for `unevaluated*` keywords, and detailed error traces.
+extra-doc-files:
+  CHANGELOG.md
 homepage:          https://github.com/DPella/jsonschema
 bug-reports:       https://github.com/DPella/jsonschema/issues
 category:          Data, JSON
@@ -34,10 +36,10 @@ library
   hs-source-dirs:
     src
   exposed-modules:
-    JSONSchema
+    Data.JSON.JSONSchema
   other-modules:
+    Data.JSON.ToJSONSchema
     JSONSchema.Validation
-    JSONSchema.ToJSONSchema
   build-depends:
       base >=4.18 && <4.19
     , text >= 2.0 && <2.1

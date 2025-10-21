@@ -433,55 +433,41 @@ validateNumberConstraints :: [Text] -> KM.KeyMap Value -> Value -> [ValidationEr
 validateNumberConstraints path km value =
   case value of
     Number num ->
-      let num_val = Sci.toRealFloat num :: Double
+      let fmt :: Scientific -> Text
+          fmt = T.pack . Sci.formatScientific Sci.Generic Nothing
       in  concat
             [ case km KM.!? "minimum" of
                 Just (Number min_val) ->
                   [ ValidationError path $
-                    "Value "
-                      <> T.pack (show num_val)
-                      <> " is less than minimum "
-                      <> T.pack (show (Sci.toRealFloat min_val :: Double))
-                  | num_val < Sci.toRealFloat min_val
+                    "Value " <> fmt num <> " is less than minimum " <> fmt min_val
+                  | num < min_val
                   ]
                 _ -> []
             , case km KM.!? "exclusiveMinimum" of
                 Just (Number min_val) ->
                   [ ValidationError path $
-                    "Value "
-                      <> T.pack (show num_val)
-                      <> " is not greater than exclusiveMinimum "
-                      <> T.pack (show (Sci.toRealFloat min_val :: Double))
-                  | num_val <= Sci.toRealFloat min_val
+                    "Value " <> fmt num <> " is not greater than exclusiveMinimum " <> fmt min_val
+                  | num <= min_val
                   ]
                 _ -> []
             , case km KM.!? "maximum" of
                 Just (Number max_val) ->
                   [ ValidationError path $
-                    "Value "
-                      <> T.pack (show num_val)
-                      <> " exceeds maximum "
-                      <> T.pack (show (Sci.toRealFloat max_val :: Double))
-                  | num_val > Sci.toRealFloat max_val
+                    "Value " <> fmt num <> " exceeds maximum " <> fmt max_val
+                  | num > max_val
                   ]
                 _ -> []
             , case km KM.!? "exclusiveMaximum" of
                 Just (Number max_val) ->
                   [ ValidationError path $
-                    "Value "
-                      <> T.pack (show num_val)
-                      <> " is not less than exclusiveMaximum "
-                      <> T.pack (show (Sci.toRealFloat max_val :: Double))
-                  | num_val >= Sci.toRealFloat max_val
+                    "Value " <> fmt num <> " is not less than exclusiveMaximum " <> fmt max_val
+                  | num >= max_val
                   ]
                 _ -> []
             , case km KM.!? "multipleOf" of
                 Just (Number divisor) ->
                   ( [ ValidationError path $
-                      "Value "
-                        <> T.pack (show num_val)
-                        <> " is not a multiple of "
-                        <> T.pack (show (Sci.toRealFloat divisor :: Double))
+                      "Value " <> fmt num <> " is not a multiple of " <> fmt divisor
                     | not (isMultipleOf num divisor)
                     ]
                   )

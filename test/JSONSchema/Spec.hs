@@ -11,7 +11,7 @@ import Data.Text (Text)
 import Data.Vector (fromList)
 import Data.Vector qualified as V
 import GHC.Generics (Generic)
-import JSONSchema
+import Data.JSON.JSONSchema
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -196,6 +196,24 @@ validationSpecCoverage =
         assertBool "1 ok" (validateJSONSchema s (Number 1))
         assertBool "2.9 ok" (validateJSONSchema s (Number 2.9))
         assertBool "3 not ok" (not $ validateJSONSchema s (Number 3))
+    , testCase "minimum respects large integers" $ do
+        let s =
+              object
+                [ "type" .= ("integer" :: Text)
+                , "minimum" .= Number 9007199254740993
+                ]
+        assertBool "just below fails" (not $ validateJSONSchema s (Number 9007199254740992))
+        assertBool "threshold passes" (validateJSONSchema s (Number 9007199254740993))
+    , testCase "exclusiveMaximum handles high precision decimals" $ do
+        let bound = Number 0.12345678901234567890
+            s =
+              object
+                [ "type" .= ("number" :: Text)
+                , "exclusiveMaximum" .= bound
+                ]
+        assertBool "slightly smaller ok" (validateJSONSchema s (Number 0.12345678901234567889))
+        assertBool "equal fails" (not $ validateJSONSchema s bound)
+        assertBool "larger fails" (not $ validateJSONSchema s (Number 0.12345678901234567891))
     , testCase "multipleOf exact with rational" $ do
         let s = object ["type" .= ("number" :: Text), "multipleOf" .= (0.1 :: Double)]
         assertBool "0.3 ok" (validateJSONSchema s (Number 0.3))
@@ -373,6 +391,7 @@ deriveWorks =
         let schema = toJSONSchema (Proxy :: Proxy Person)
             jPerson = toJSON (Person "Bob" 42)
         assertBool "Person JSON should validate against derived schema" (validateJSONSchema schema jPerson)
+        assertBool "Person schema should reject missing fields" (not $ validateJSONSchema schema (object []))
     , testCase "Shape sum (non-record) constructors validate" $ do
         let schema = toJSONSchema (Proxy :: Proxy Shape)
             j1 = toJSON (Circle 1.5)
@@ -385,6 +404,16 @@ deriveWorks =
             j2 = toJSON (Cat "Whiskers")
         assertBool "Dog JSON should validate" (validateJSONSchema schema j1)
         assertBool "Cat JSON should validate" (validateJSONSchema schema j2)
+        assertBool "Dog schema should reject missing required fields"
+          (not $
+            validateJSONSchema schema
+              (object ["tag" .= ("Dog" :: Text)])
+          )
+        assertBool "Dog schema should reject missing tag"
+          (not $
+            validateJSONSchema schema
+              (object ["dogName" .= ("Fido" :: Text), "dogAge" .= (5 :: Int)])
+          )
     , testCase "Triple non-record product flattens and validates" $ do
         let schema = toJSONSchema (Proxy :: Proxy Triple)
             jTriple = toJSON (Triple 1 "a" True)
@@ -395,6 +424,20 @@ deriveWorks =
         assertBool "Just Int validates" (validateJSONSchema maybeSchema (toJSON (Just (3 :: Int))))
         assertBool "Nothing validates" (validateJSONSchema maybeSchema Null)
         assertBool "[Text] validates" (validateJSONSchema listSchema (toJSON (["x", "y"] :: [Text])))
+    , testCase "Either schema enforces discriminator semantics" $ do
+        let schema = toJSONSchema (Proxy :: Proxy (Either Int Text))
+            leftVal = toJSON (Left (3 :: Int) :: Either Int Text)
+            rightVal = toJSON (Right ("hi" :: Text) :: Either Int Text)
+            emptyObj = object []
+            bothObj =
+              object
+                [ "Left" .= (1 :: Int)
+                , "Right" .= ("oops" :: Text)
+                ]
+        assertBool "Left JSON should validate" (validateJSONSchema schema leftVal)
+        assertBool "Right JSON should validate" (validateJSONSchema schema rightVal)
+        assertBool "Empty object should be rejected" (not $ validateJSONSchema schema emptyObj)
+        assertBool "Object with both constructors should be rejected" (not $ validateJSONSchema schema bothObj)
     ]
 
 schemaRecursiveWorks :: TestTree

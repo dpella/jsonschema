@@ -9,15 +9,16 @@ This library provides:
 - `$defs`/`$ref` support for recursive types.
 - A validator that implements the core 2020-12 validation + applicator vocabularies.
 - Helpful error reporting with instance paths when you want detailed feedback.
+- High-level API exposed through `Data.JSON.JSONSchema` (re-exporting `ToJSONSchema` and helpers).
 
 
 ## Features
 
 - Derive schemas with the `ToJSONSchema` type class; generic default handles most ADTs.
-- Records become JSON objects with named properties; non-record products become arrays with `prefixItems` and `items: false`.
+- Records become JSON objects with named properties, emit `"required"` for every field, and forbid extras via `additionalProperties: false`. Non-record products become arrays with `prefixItems` and `items: false`.
 - Sum types are modeled with discriminator tags:
   - Record constructors: object with a required `tag` (constructor name) and the record fields.
-  - Non-record constructors: object `{ tag, contents }`, where `contents` is the constructor’s payload (array/object).
+  - Non-record constructors: object `{ tag, contents }`, both required, where `contents` carries the constructor’s payload (array/object).
 - Recursive types are emitted under `"$defs"` and referenced with `"$ref"`.
 - Validation covers: `type`, `const`, `enum`, numeric and string constraints, arrays (`prefixItems`, `items`, `contains`, `minContains`, `maxContains`), objects (`properties`, `patternProperties`, `additionalProperties`, `propertyNames`, `required`, `dependentSchemas`, `dependentRequired`), combinators (`anyOf`, `oneOf`, `allOf`, `not`), conditionals (`if`/`then`/`else`), and pragmatic `unevaluated*`.
 - Local `$ref` resolution using JSON Pointers within the same document.
@@ -38,7 +39,7 @@ import GHC.Generics (Generic)
 import Data.Aeson (ToJSON, Value, object, (.=))
 import Data.Proxy (Proxy(..))
 import Data.Text (Text)
-import JSONSchema                -- ToJSONSchema(..), Proxy(..), validateJSONSchema
+import Data.JSON.JSONSchema      -- ToJSONSchema(..), Proxy(..), validateJSONSchema
 import JSONSchema.Validation     -- validate / validateWithErrors (optional)
 ```
 
@@ -69,7 +70,8 @@ What you get (shape, simplified):
         "name": {"type": "string"},
         "age":  {"type": "integer"}
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": ["name", "age"]
     }
   },
   "$ref": "#/$defs/Person"
@@ -163,4 +165,3 @@ instance ToJSONSchema UUID where
 
 Copyright (c) DPella AB. All rights reserved.
 See `LICENSE` for details.
-
