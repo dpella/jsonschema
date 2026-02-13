@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.0.1
+- Widen dependency bounds to support GHC 9.12.2.
+
 ## 0.2.0
 - Move the public API to `Data.JSON.JSONSchema` and supporting machinery to `Data.JSON.ToJSONSchema`.
 - Tighten derived record/sum schemas to emit `required` arrays and discriminator requirements.

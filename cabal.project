@@ -2,7 +2,7 @@ packages: jsonschema.cabal
 
 
 -- GHC version
-with-compiler: ghc-9.6.6
+with-compiler: ghc-9.12.2
 
 -- Optimization level
 optimization: 2
