@@ -6,7 +6,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Args
 ARG USER_NAME=haskell
-ARG GHC_VERSION=9.6.6
+ARG GHC_VERSION=9.12.2
 ARG CABAL_VERSION=3.16.0.0
 ARG UID=1001
 ARG GID=1001
@@ -81,7 +81,7 @@ COPY --chown=${UID}:${GID} cabal.project.freeze /app/cabal.project.freeze
 WORKDIR /app
 # Using the cabal files, we can build the dependencies
 RUN --mount=type=cache,id=build-cache,uid=${UID},gid=${GID},target=/app/dist-newstyle \
-    cabal update --index-state='2025-09-01T00:00:00Z' && \
+    cabal update --index-state='2026-02-04T09:38:39Z' && \
     sed -i 's/-bundled-c-zlib/+bundled-c-zlib/' cabal.project.freeze &&\
     cabal build all --only-dependencies --haddock-all --project-file=cabal.project --project-dir=/app
 
