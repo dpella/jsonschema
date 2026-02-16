@@ -8,7 +8,7 @@ main = defaultMain tests
 
 tests :: TestTree
 tests =
-  testGroup
-    "JSONSchema Tests"
-    [ JSONSchema.tests
-    ]
+    testGroup
+        "JSONSchema Tests"
+        [ JSONSchema.tests
+        ]
