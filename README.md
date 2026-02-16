@@ -1,5 +1,7 @@
 # jsonschema
 
+[![Hackage](https://img.shields.io/hackage/v/jsonschema.svg)](https://hackage.haskell.org/package/jsonschema)
+
 Haskell library for deriving and validating JSON Schema (2020-12).
 
 This library provides:
