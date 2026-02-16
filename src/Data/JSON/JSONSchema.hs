@@ -41,5 +41,4 @@ module Data.JSON.JSONSchema (
 ) where
 
 import Data.JSON.ToJSONSchema
-import Data.Proxy
 import JSONSchema.Validation
